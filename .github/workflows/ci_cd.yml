@@ -62,9 +62,6 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        # Configura o cache para builds rápidos no Github Actions
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-    
+
     - name: ✅ Sucesso
       run: echo "Imagem Docker pushed com sucesso para o Docker Hub."
