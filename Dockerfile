@@ -30,7 +30,6 @@ ENV PYTHONUNBUFFERED=1
 COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
 
 # Copia o código-fonte (src) e o arquivo de configuração (.env)
-# Atenção: Esta linha corrige o erro de sintaxe do COPY e o erro de "casing"
 COPY ./src /app/src
 COPY ./.env /app/.env
 
