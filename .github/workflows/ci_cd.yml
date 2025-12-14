@@ -1,0 +1,70 @@
+# Arquivo: .github/workflows/ci_cd.yml
+name: CI/CD - Docker Build and Push
+
+# Executa este workflow toda vez que houver push para a branch 'main'
+# ou quando for acionado manualmente.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: ⬇️ Checkout do Código
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    # ------------------
+    # Fase de Qualidade (Garante que as boas práticas foram seguidas)
+    # ------------------
+    - name: 🛠️ Instalar Poetry e Dependências
+      run: |
+        pip install poetry
+        # Instala todas as dependências (incluindo dev) para rodar o linter
+        poetry install --sync
+
+    - name: 🔍 Executar Linting com Ruff
+      # A falha no Ruff impede o build do Docker, garantindo a qualidade.
+      run: poetry run ruff check src
+
+    # ------------------
+    # Fase de Docker e Deploy
+    # ------------------
+    - name: 🐳 Login no Docker Hub
+      uses: docker/login-action@v3
+      with:
+        # Usa as Secrets configuradas no Github
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: 🏷️ Definir Tags da Imagem
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        # Define a imagem como "seu_usuario/arxiv-scraper"
+        images: ${{ secrets.DOCKER_USERNAME }}/arxiv-scraper
+        tags: |
+          type=sha
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: 🏗️ Construir e Publicar Imagem Docker (Push)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        # Configura o cache para builds rápidos no Github Actions
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: ✅ Sucesso
+      run: echo "Imagem Docker pushed com sucesso para o Docker Hub."

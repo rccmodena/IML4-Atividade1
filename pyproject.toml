@@ -27,3 +27,10 @@ dev = [
     "pre-commit (>=4.5.0,<5.0.0)",
     "bump2version (>=1.0.1,<2.0.0)"
 ]
+
+[tool.ruff]
+line-length = 88
+# Seleciona as regras de linter a serem aplicadas (E/F = Pyflakes/pycodestyle, I = Imports, B = Bugs)
+select = ["E", "F", "I", "C", "W", "B"] 
+ignore = []
+target-version = "py310"
