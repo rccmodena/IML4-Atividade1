@@ -1,0 +1,29 @@
+[project]
+name = "arxiv-scraper"
+version = "0.1.0"
+description = "Web Scraper para artigos cs.CL do Arxiv com CI/CD"
+authors = [
+    {name = "Monica Sobral Mendes",email = "mosmendes@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests (>=2.32.5,<3.0.0)",
+    "beautifulsoup4 (>=4.14.3,<5.0.0)",
+    "duckdb (>=1.4.3,<2.0.0)",
+    "pydantic (>=2.12.5,<3.0.0)",
+    "pydantic-settings (>=2.12.0,<3.0.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.14.9,<0.15.0)",
+    "pre-commit (>=4.5.0,<5.0.0)",
+    "bump2version (>=1.0.1,<2.0.0)"
+]

@@ -1,0 +1,20 @@
+# Arquivo: .pre-commit-config.yaml
+# Configura os hooks que serão executados antes de cada 'git commit'
+
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Rev: Use a versão mais recente do Ruff para maior desempenho
+  rev: v0.1.9 
+  hooks:
+    - id: ruff
+      # Garante que o Ruff tente corrigir os erros encontrados
+      args: [--fix, --exit-non-zero-on-fix] 
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+    - id: check-yaml       # Verifica arquivos YAML (como este e o CI/CD)
+    - id: check-json       # Verifica arquivos JSON
+    - id: trailing-whitespace # Remove espaços em branco no final das linhas
+    - id: end-of-file-fixer # Garante uma linha em branco no final do arquivo
+    - id: check-toml        # Verifica o pyproject.toml
