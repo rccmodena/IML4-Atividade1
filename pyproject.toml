@@ -31,6 +31,6 @@ dev = [
 [tool.ruff]
 line-length = 88
 # Seleciona as regras de linter a serem aplicadas (E/F = Pyflakes/pycodestyle, I = Imports, B = Bugs)
-select = ["E", "F", "I", "C", "W", "B"] 
-ignore = []
+lint.select = ["E", "F", "I", "C", "W", "B"] 
+lint.ignore = []
 target-version = "py310"

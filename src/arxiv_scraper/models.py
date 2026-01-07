@@ -1,9 +1,11 @@
 # Arquivo: src/arxiv_scraper/models.py
 import csv
-from typing import List
 from pathlib import Path
-from .config import settings
+from typing import List
+
 from pydantic import BaseModel, HttpUrl
+
+from .config import settings
 
 
 class Article(BaseModel):
@@ -14,9 +16,9 @@ class Article(BaseModel):
 
     arxiv_id: str
     title: str
-    authors: List[str]
+    authors: str
     subjects: str
-    summary: str
+    abstract: str
     link: HttpUrl  # Pydantic valida se é uma URL válida
     submission_date: str
 
@@ -31,7 +33,7 @@ def save_articles_to_csv(data: List[Article], filename: Path = settings.CSV_PATH
     Salvar os artigos em arquivo CSV.
     """
 
-    fieldnames = list(Article.model_fields.keys())
+    fieldnames = list(Article.model_fields.keys())  # For Pydantic V2
 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)

@@ -24,18 +24,20 @@ class DuckDBManager:
     def _initialize_database(self):
         """Cria a conexão e a tabela se não existir."""
         self.conn = duckdb.connect(database=str(self.db_path), read_only=False)
-        self.conn.sql(f"""
+        self.conn.sql(
+            f"""
             -- Cria a tabela com arxiv_id como Chave Primária para evitar duplicatas
             CREATE TABLE IF NOT EXISTS {settings.TABLE_NAME} (
                 arxiv_id VARCHAR PRIMARY KEY,
                 title VARCHAR,
                 authors VARCHAR,
                 subjects VARCHAR,
-                summary VARCHAR,
+                abstract VARCHAR,
                 link VARCHAR,
                 submission_date VARCHAR
             );
-        """)
+        """
+        )
 
     def insert_articles(self, articles: List[Article]):
         """
@@ -51,10 +53,9 @@ class DuckDBManager:
             (
                 article.arxiv_id,
                 article.title,
-                # Armazena a lista de autores como uma string separada por vírgula
-                ", ".join(article.authors),
+                article.authors,
                 article.subjects,
-                article.summary,
+                article.abstract,
                 str(article.link),
                 article.submission_date,
             )

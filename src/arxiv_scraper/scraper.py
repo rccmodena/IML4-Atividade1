@@ -1,3 +1,5 @@
+import datetime
+import time
 from typing import List
 from urllib.parse import urljoin
 
@@ -22,42 +24,84 @@ def parse_arxiv_article(dt_tag: BeautifulSoup, dd_tag: BeautifulSoup) -> Article
     arxiv_id_full = dt_tag.find("a", title="Abstract").text.strip()
     arxiv_id = arxiv_id_full.split(":")[-1]  # Ex: "2312.06733"
 
+    print(f"🌐 Extraindo detalhes dos artigo: {arxiv_id}")
+
     # Constrói o link absoluto
     relative_link = dt_tag.find("a", title="Abstract")["href"]
     absolute_link = urljoin("https://arxiv.org/", relative_link)
 
     # 2. Extração do Título
     # O título está dentro de uma div com classe 'list-title'
-    title = dd_tag.find("div", class_="list-title").text.replace("Title: ", "").strip()
+    title_div = dd_tag.find("div", class_="list-title")
+
+    # Remove a descrição "Title"
+    descriptor = title_div.find("span", class_="descriptor")
+    if descriptor:
+        descriptor.decompose()
+
+    title = title_div.get_text(" ", strip=True)
 
     # 3. Extração dos Autores
     # Os autores são links <a> dentro da div 'list-authors'
     author_tags = dd_tag.find("div", class_="list-authors").find_all("a")
     authors = [tag.text.strip() for tag in author_tags]
+    authors = ", ".join(authors)
 
-    # 4. Extração de Sujeitos e Data de Submissão
-    # O Arxiv agrupa sujeitos e a data de submissão na mesma linha.
-    subjects_line = (
-        dd_tag.find("div", class_="list-subjects")
-        .text.replace("Subjects: ", "")
-        .strip()  # Quebramos a linha aqui
+    # 4. Extração de Assuntos
+    # O Arxiv agrupa assuntos
+    subjects_div = dd_tag.find("div", class_="list-subjects")
+
+    # Remove a descrição "Subjects"
+    descriptor = subjects_div.find("span", class_="descriptor")
+    if descriptor:
+        descriptor.decompose()
+
+    subjects = [
+        sub.strip() for sub in subjects_div.get_text(" ", strip=True).split(";")
+    ]
+    subjects_str = ", ".join(subjects)
+
+    # 5. Data de submissão e Resumo
+    # Para adquirir essas informações é necessário fazer um novo request.
+    try:
+        # 1. Requisição: Timeout definido para boas práticas
+        response = requests.get(absolute_link, timeout=15)
+        response.raise_for_status()  # Lança HTTPError para respostas ruins (4xx, 5xx)
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Erro ao acessar a URL: {e}")
+        return []
+
+    # 2. Parsing: Usa o 'html.parser' que é nativo e rápido
+    detailed_soup = BeautifulSoup(response.content, "html.parser")
+
+    test_div = (
+        detailed_soup.find("div", class_="dateline")
+        .get_text(" ", strip=True)
+        .replace("Submitted on ", "")
+        .strip()
     )
 
-    # A data de submissão está no final da linha e é separada por '[Submitted ...]'
-    submission_date = subjects_line.split(" [Submitted ")[-1].replace("]", "")
-    subjects = subjects_line.split(" [Submitted ")[0].strip()
+    date_string = test_div[1:-1]
+    submission_date = datetime.datetime.strptime(date_string, "%d %b %Y").strftime(
+        "%Y-%m-%d"
+    )
 
-    # Observação: O resumo (summary) completo não está na página de lista.
-    # Usamos um placeholder para manter o modelo Pydantic completo.
-    summary = "Summary not available in list view."
+    abstract_blockquote = detailed_soup.find("blockquote", class_="abstract")
+
+    # Remove a descrição "Abstract"
+    descriptor = abstract_blockquote.find("span", class_="descriptor")
+    if descriptor:
+        descriptor.decompose()
+
+    abstract = abstract_blockquote.get_text(" ", strip=True)
 
     # Retorna o objeto validado (Pydantic garantirá que os tipos estão corretos)
     return Article(
         arxiv_id=arxiv_id,
         title=title,
         authors=authors,
-        subjects=subjects,
-        summary=summary,
+        subjects=subjects_str,
+        abstract=abstract,
         link=absolute_link,
         submission_date=submission_date,
     )
@@ -106,11 +150,13 @@ def scrape_arxiv(url: str) -> List[Article]:
             # Chama a função de parsing e validação Pydantic
             article = parse_arxiv_article(dt, dd)
             articles.append(article)
+            # break
         except Exception as e:
             # Tratamento de erro específico para uma linha,
             # permitindo que o loop continue
             print(f"⚠️ Erro ao parsear um artigo: {e}")
             continue
+        time.sleep(settings.REQUEST_DELAY)
 
     print(f"✅ Scraping concluído. {len(articles)} artigos extraídos.")
     return articles
@@ -133,7 +179,7 @@ def main():
     db_manager.insert_articles(articles)
     db_manager.close()
 
-    # 3. Salvar os artigos em um arquivo CSV
+    # Salvar os artigos em um arquivo CSV
     save_articles_to_csv(data=articles)
 
     print("✨ Processo de extração e persistência concluído com sucesso.")

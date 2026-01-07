@@ -29,6 +29,9 @@ class Settings(BaseSettings):
         default=DATA_DIR / "arxiv_data.csv",
         description="Caminho do arquivo CSV para persistência.",
     )
+    REQUEST_DELAY: float = Field(
+        default=0.2, description="Tempo entre requests para evitar sobrecarga."
+    )
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
