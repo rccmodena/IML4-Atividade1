@@ -1,5 +1,11 @@
 # ArXiv Scraper - Computation and Language (cs.CL)
 
+Nome: Rudi César Comiotto Modena.
+
+Trabalho realizado em conjunto com:
+- Márcio Leandro
+- Mônica Mendes
+
 Este projeto consiste em um mecanismo de extração de dados (**Web Scraper**) desenvolvido para coletar informações sobre artigos científicos recentes da seção _Computation and Language_ do portal **ArXiv**. O sistema extrai metadados, garante a persistência em um banco de dados analítico, arquivo CSV e utiliza esteiras de **CI/CD** para automação.
 
 ---
